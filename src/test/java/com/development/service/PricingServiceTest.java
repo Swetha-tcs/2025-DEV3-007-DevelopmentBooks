@@ -5,16 +5,17 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.development.softwarebooks.domain.Book;
 import com.development.softwarebooks.service.DiscountCalculator;
 
-class DiscountCalculatorTest {
+public class PricingServiceTest {
 
 	@Test
 	void testSingleBook_NoDiscount() {
 		DiscountCalculator calculator = new DiscountCalculator();
-		List<Integer> books = List.of(1);
+		List<Book> books = List.of(new Book("A"));
 		double total = calculator.calculatePrice(books);
-		Assertions.assertEquals(8.0, total, 0.001);
+		Assertions.assertEquals(50.0, total);
 	}
 
 }
