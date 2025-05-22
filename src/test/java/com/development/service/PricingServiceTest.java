@@ -14,8 +14,16 @@ public class PricingServiceTest {
 	void testSingleBook_NoDiscount() {
 		DiscountCalculator calculator = new DiscountCalculator();
 		List<Book> books = List.of(new Book("A"));
-		double total = calculator.calculatePrice(books);
+		double total = calculator.calculateTotal(books);
 		Assertions.assertEquals(50.0, total);
+	}
+
+	@Test
+	void testTwoDifferentBooks_5PercentDiscount() {
+	    DiscountCalculator calculator = new DiscountCalculator();
+	    List<Book> books = List.of(new Book("A"), new Book("B"));
+	    double total = calculator.calculateTotal(books);
+	    Assertions.assertEquals(95.0, total);
 	}
 
 }
