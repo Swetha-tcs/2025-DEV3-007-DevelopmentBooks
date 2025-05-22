@@ -33,6 +33,10 @@ public class DiscountCalculator {
 	    if (uniqueTitles.size() == 3 && books.size() == 3) {
 	        return 3 * 50.0 * 0.90; // 10% discount
 	    }
+	    
+	    if (uniqueTitles.size() == 4 && books.size() == 4) {
+	        return 4 * 50.0 * 0.80; // 20% discount
+	    }
         return books.size() * BASE_PRICE;
     }
 	
