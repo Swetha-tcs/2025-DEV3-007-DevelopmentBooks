@@ -1,16 +1,19 @@
 package com.development.softwarebooks.service;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import com.development.softwarebooks.domain.Book;
 
 public class DiscountCalculator {
 
-	public double calculateTotal(List<Book> books) {
-		List<Book> remainingBooks = new ArrayList<>(books);
-		double total = 0.0;
+	private static final double BASE_PRICE = 8.0;
 
-		return total;
+	/**
+	 * Calculates the price for a list of books (by ID). Currently, no discounts are
+	 * applied.
+	 */
+	public double calculatePrice(List<Integer> books) {
+
+		return books.size() * BASE_PRICE;
 	}
+
+	
 }
