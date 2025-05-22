@@ -62,4 +62,19 @@ public class PricingServiceTest {
 	    Assertions.assertEquals(187.50, total);
 	}
 
+	@Test
+	void testDuplicateBooks_AreGroupedForMaxDiscount() {
+	    DiscountCalculator calculator = new DiscountCalculator();
+	    List<Book> books = List.of(
+	        new Book("A"), new Book("A"),
+	        new Book("B"), new Book("B"),
+	        new Book("C"), new Book("C"),
+	        new Book("D"),
+	        new Book("E")
+	    );
+
+	    double total = calculator.calculateTotal(books);
+	    Assertions.assertEquals(322.5, total); 
+	}
+
 }
