@@ -1,0 +1,51 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    margin-top: 50px;
+}
+
+.card {
+    background: white;
+    padding: 20px 30px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 15px rgba(0,0,0,0.1);
+    width: 400px;
+}
+
+h2 {
+    text-align: center;
+}
+
+.book-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.book-row label {
+    flex: 1;
+    margin-left: 10px;
+}
+
+.book-row input {
+    width: 60px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #0078d7;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.total {
+    margin-top: 20px;
+    text-align: center;
+    font-weight: bold;
+}
