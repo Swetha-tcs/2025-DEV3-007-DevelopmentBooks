@@ -45,7 +45,21 @@ public class PricingServiceTest {
 	    );
 
 	    double total = calculator.calculateTotal(books);
-	    Assertions.assertEquals(160.0, total, 0.001);
+	    Assertions.assertEquals(160.0, total);
+	}
+	@Test
+	void testFiveDifferentBooks_25PercentDiscount() {
+	    DiscountCalculator calculator = new DiscountCalculator();
+	    List<Book> books = List.of(
+	        new Book("A"),
+	        new Book("B"),
+	        new Book("C"),
+	        new Book("D"),
+	        new Book("E")
+	    );
+
+	    double total = calculator.calculateTotal(books);
+	    Assertions.assertEquals(187.50, total);
 	}
 
 }
