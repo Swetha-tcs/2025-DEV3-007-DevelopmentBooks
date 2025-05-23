@@ -1,85 +1,87 @@
 package com.development.service;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
 import com.development.softwarebooks.domain.Book;
 import com.development.softwarebooks.service.DiscountCalculator;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PricingServiceTest {
 
-	@Test
-	void testSingleBook_NoDiscount() {
-		DiscountCalculator calculator = new DiscountCalculator();
-		List<Book> books = List.of(new Book("A"));
-		double total = calculator.calculateTotal(books);
-		Assertions.assertEquals(50.0, total);
-	}
+    private DiscountCalculator calculator;
 
-	@Test
-	void testTwoDifferentBooks_5PercentDiscount() {
-		DiscountCalculator calculator = new DiscountCalculator();
-		List<Book> books = List.of(new Book("A"), new Book("B"));
-		double total = calculator.calculateTotal(books);
-		Assertions.assertEquals(95.0, total);
-	}
+    @BeforeEach
+    void setUp() {
+        calculator = new DiscountCalculator();
+    }
 
-	@Test
-	void testThreeDifferentBooks_10PercentDiscount() {
-		DiscountCalculator calculator = new DiscountCalculator();
-		List<Book> books = List.of(new Book("A"), new Book("B"), new Book("C"));
-		double total = calculator.calculateTotal(books);
-		Assertions.assertEquals(135.0, total);
-	}
+    @Test
+    void testSingleBook_NoDiscount() {
+        double total = calculator.calculateTotal(List.of(book("A")));
+        assertEquals(50.0, total, 0.001);
+    }
 
-	@Test
-	void testFourDifferentBooks_20PercentDiscount() {
-		DiscountCalculator calculator = new DiscountCalculator();
-		List<Book> books = List.of(new Book("A"), new Book("B"), new Book("C"), new Book("D"));
+    @Test
+    void testTwoDifferentBooks_5PercentDiscount() {
+        double total = calculator.calculateTotal(List.of(book("A"), book("B")));
+        assertEquals(95.0, total, 0.001);
+    }
 
-		double total = calculator.calculateTotal(books);
-		Assertions.assertEquals(160.0, total);
-	}
+    @Test
+    void testThreeDifferentBooks_10PercentDiscount() {
+        double total = calculator.calculateTotal(List.of(book("A"), book("B"), book("C")));
+        assertEquals(135.0, total, 0.001);
+    }
 
-	@Test
-	void testFiveDifferentBooks_25PercentDiscount() {
-		DiscountCalculator calculator = new DiscountCalculator();
-		List<Book> books = List.of(new Book("A"), new Book("B"), new Book("C"), new Book("D"), new Book("E"));
+    @Test
+    void testFourDifferentBooks_20PercentDiscount() {
+        double total = calculator.calculateTotal(List.of(book("A"), book("B"), book("C"), book("D")));
+        assertEquals(160.0, total, 0.001);
+    }
 
-		double total = calculator.calculateTotal(books);
-		Assertions.assertEquals(187.50, total);
-	}
+    @Test
+    void testFiveDifferentBooks_25PercentDiscount() {
+        double total = calculator.calculateTotal(List.of(book("A"), book("B"), book("C"), book("D"), book("E")));
+        assertEquals(187.50, total, 0.001);
+    }
 
-	@Test
-	void testDuplicateBooks_OptimalGrouping_4Plus4() {
-		DiscountCalculator calculator = new DiscountCalculator();
+    @Test
+    void testDuplicateBooks_OptimalGrouping_4Plus4() {
+        List<Book> books = List.of(
+                book("Clean Code"), book("Clean Code"),
+                book("The Clean Coder"), book("The Clean Coder"),
+                book("Clean Architecture"), book("Clean Architecture"),
+                book("Test Driven Development by Example"),
+                book("Working Effectively with Legacy Code")
+        );
+        double total = calculator.calculateTotal(books);
+        assertEquals(320.0, total, 0.001);
+    }
 
-		List<Book> books = List.of(new Book("Clean Code"), new Book("Clean Code"), new Book("The Clean Coder"),
-				new Book("The Clean Coder"), new Book("Clean Architecture"), new Book("Clean Architecture"),
-				new Book("Test Driven Development by Example"), new Book("Working Effectively with Legacy Code"));
+    @Test
+    void testTenBooks_TwoEachOfFiveTitles() {
+        List<Book> books = List.of(
+                book("A"), book("A"),
+                book("B"), book("B"),
+                book("C"), book("C"),
+                book("D"), book("D"),
+                book("E"), book("E")
+        );
+        double total = calculator.calculateTotal(books);
+        assertEquals(375.0, total, 0.001); // 2 sets of 5 books with 25% discount each
+    }
 
-		double total = calculator.calculateTotal(books);
-		Assertions.assertEquals(320.0, total, 0.001);
-	}
+    @Test
+    void testAllSameBooks_NoDiscount() {
+        List<Book> books = List.of(book("A"), book("A"), book("A"));
+        double total = calculator.calculateTotal(books);
+        assertEquals(150.0, total, 0.001); // No discount on same titles
+    }
 
-	@Test
-	void testTenBooks_TwoEachOfFiveTitles() {
-		DiscountCalculator calculator = new DiscountCalculator();
-		List<Book> books = List.of(new Book("A"), new Book("A"), new Book("B"), new Book("B"), new Book("C"),
-				new Book("C"), new Book("D"), new Book("D"), new Book("E"), new Book("E"));
-		double total = calculator.calculateTotal(books);
-		Assertions.assertEquals(375.0, total); // 2 * (5 * 50 * 0.75)
-	}
-
-	@Test
-	void testAllSameBooks_NoDiscount() {
-		DiscountCalculator calculator = new DiscountCalculator();
-		List<Book> books = List.of(new Book("A"), new Book("A"), new Book("A"));
-
-		double total = calculator.calculateTotal(books);
-		Assertions.assertEquals(150.0, total); // 3 * 50, no discount
-	}
-
+    private Book book(String title) {
+        return new Book(title);
+    }
 }
