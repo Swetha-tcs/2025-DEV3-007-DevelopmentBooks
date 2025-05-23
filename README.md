@@ -1,17 +1,58 @@
 # 2025-DEV3-007-DevelopmentBooks
 
-# 📘 Software Development Books Kata
+# 📚 Software Development Books 
 
-This is a Spring Boot application that calculates the price for a basket of software development books. It applies discounts to combinations of different books. The application includes a REST API and a static HTML UI enhanced with JavaScript.
+This is a **Spring Boot** application that calculates the total price for a basket of software development books. The pricing logic applies discounts for combinations of *different* book titles. The application is built using **TDD (Test-Driven Development)** principles and includes:
+
+- ✅ **RESTful API for programmatic access**
+- ✅ **Static HTML and JavaScript-based user interface**
+- ✅ **Comprehensive unit and integration testing**
+- ✅ **Clean, modular architecture with a testable service layer**
 
 ---
 
-## 🔧 Features
+## 🔍 Problem Overview
 
-- Calculates total price with discount rules.
-- RESTful API (`/api/price`) accepts a list of book titles as JSON.
-- Static HTML UI with JavaScript dynamically posts to the API.
-- Built using Test-Driven Development (TDD) : Red → Green → Refactor.
+There are 5 different software development books available:
+
+1. Clean Code  
+2. The Clean Coder  
+3. Clean Architecture  
+4. Test-Driven Development by Example  
+5. Working Effectively with Legacy Code
+
+💰 **Base Price per Book**: €50, with the following discounts applied when purchasing different titles together:
+
+| Unique Titles in Set | Discount   |
+|----------------------|------------|
+| 1                    | 0%         |
+| 2                    | 5%         |
+| 3                    | 10%        |
+| 4                    | 20%        |
+| 5                    | 25%        |
+
+The challenge is to **minimize the total price** for any basket of books by optimally grouping them to take advantage of the best possible discounts.
+
+---
+
+## 🚀 Features
+
+- 🧠 Optimal discount calculation using memoization
+- 🧪 TDD-based backend development with JUnit & Mockito
+- 🌐 REST API for programmatic access
+- 💻 Interactive web frontend using HTML + JavaScript
+- 🔒 Input validation and error handling
+
+---
+
+## 🛠️ Technology Stack
+
+- Java 
+- Spring Boot 3.x
+- Maven
+- JUnit 5, Mockito
+- HTML/CSS/JavaScript (Vanilla)
+- RESTful API
 
 ---
 
@@ -33,6 +74,7 @@ software-books/
 │   │   └── resources/
 │   │       └── static/
 │   │           └── index.html
+│   │           └── script.js
 │   │           └── style.css
 │   ├── test/
 │       └── java/com/development/softwarebooks/
@@ -48,7 +90,7 @@ software-books/
 
 - **Request Body (JSON Array):**
 ```json
-["Clean Code", "The Clean Coder", "Clean Architecture", "Test-Driven Development by Example","Working Effectively with Legacy code"]
+["Clean Code", "The Clean Coder", "Clean Architecture", "Test-Driven Development by Example","Working Effectively with Legacy Code"]
 ```
 
 - **Response:**
@@ -63,28 +105,64 @@ software-books/
 
 ## 💻 Frontend (Static HTML)
 
-`index.html` is a plain HTML page with embedded JavaScript that gathers form input and sends a POST request as JSON to the backend:
-
-
-## 🧮 Discount Rules
-
-- 1 book: no discount
-- 2 different books: 5% discount
-- 3 different books: 10% discount
-- 4 different books: 20% discount
-- 5 different books: 25% discount
-
-These rules are applied greedily by grouping the most unique books together in each round.
+`index.html` is a plain HTML page with embedded JavaScript that gathers form input and sends a POST request as JSON to the backend
 
 ---
 
 
-## 📎 Supported Book Titles
 
-- `"Clean Code"`
-- `"The Clean Coder"`
-- `"Clean Architecture"`
-- `"Test Driven Development by Example"`
-- `"Working Effectively With Legacy Code"`
+## 📥 Clone and Import Project
+
+1. **Clone the Repository**
+   
+   [https://github.com/Swetha-tcs/2025-DEV3-007-DevelopmentBooks](https://github.com/Swetha-tcs/2025-DEV3-007-DevelopmentBooks)
+
+   
+2. **Import into IDE (IntelliJ / Eclipse / VS Code)**
+
+          Open your IDE --> Select “Import Project” --> Choose the pom.xml file to import it as a Maven project.
 
 ---
+
+## 🧪 Test-Driven Development & Running the Application
+
+This project was developed using TDD (Test-Driven Development) principles:
+
+      1. Write a failing unit test
+
+      2. Implement just enough code to make it pass
+
+      3. Refactor with confidence
+
+▶️ **How to Run**
+From your IDE (IntelliJ / Eclipse / VS Code):
+
+✅ **Run Unit Tests to verify pricing logic:**
+Locate PricingServiceTest.java → Right-click → Run
+
+🚀 **Start the Application:**
+Locate SoftwareBooksApplication.java → Right-click → Run
+
+🌐 **Access the Web App:**
+Open your browser and go to → [http://localhost:8080](http://localhost:8080/)
+
+---
+
+
+ ### 💡 Example
+
+``` **Input:**
+- 2× Clean Code  
+- 2× The Clean Coder  
+- 2× Clean Architecture  
+- 1× Test-Driven Development by Example  
+- 1× Working Effectively with Legacy Code  
+
+**Optimal Grouping:**  
+→ 2 sets of 4 different books (20% discount each)
+
+**Calculation:**  
+     2 × (4 × €50 × 0.80) = **€320.00**
+ ```
+
+
