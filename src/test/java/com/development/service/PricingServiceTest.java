@@ -4,8 +4,12 @@ import com.development.softwarebooks.domain.Book;
 import com.development.softwarebooks.service.DiscountCalculator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.Arguments;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -18,34 +22,23 @@ public class PricingServiceTest {
 		calculator = new DiscountCalculator();
 	}
 
-	@Test
-	void testSingleBook_NoDiscount() {
-		double total = calculator.calculateTotal(List.of(book("A")));
-		assertEquals(50.0, total, 0.001);
+	@ParameterizedTest
+	@MethodSource("bookPricingTestCases")
+	void testBookPricing(List<Book> books, double expectedTotal) {
+		double total = calculator.calculateTotal(books);
+		assertEquals(expectedTotal, total, 0.001);
 	}
 
-	@Test
-	void testTwoDifferentBooks_5PercentDiscount() {
-		double total = calculator.calculateTotal(List.of(book("A"), book("B")));
-		assertEquals(95.0, total, 0.001);
-	}
-
-	@Test
-	void testThreeDifferentBooks_10PercentDiscount() {
-		double total = calculator.calculateTotal(List.of(book("A"), book("B"), book("C")));
-		assertEquals(135.0, total, 0.001);
-	}
-
-	@Test
-	void testFourDifferentBooks_20PercentDiscount() {
-		double total = calculator.calculateTotal(List.of(book("A"), book("B"), book("C"), book("D")));
-		assertEquals(160.0, total, 0.001);
-	}
-
-	@Test
-	void testFiveDifferentBooks_25PercentDiscount() {
-		double total = calculator.calculateTotal(List.of(book("A"), book("B"), book("C"), book("D"), book("E")));
-		assertEquals(187.50, total, 0.001);
+	private static Stream<Arguments> bookPricingTestCases() {
+		return Stream.of(Arguments.of(List.of(book("A")), 50.0), Arguments.of(List.of(book("A"), book("B")), 95.0),
+				Arguments.of(List.of(book("A"), book("B"), book("C")), 135.0),
+				Arguments.of(List.of(book("A"), book("B"), book("C"), book("D")), 160.0),
+				Arguments.of(List.of(book("A"), book("B"), book("C"), book("D"), book("E")), 187.50),
+				Arguments.of(List.of(), 0.0), Arguments.of(List.of(book("A"), book("A")), 100.0),
+				Arguments.of(List.of(book("A"), book("A"), book("B")), 145.0),
+				Arguments.of(List.of(book("A"), book("A"), book("B"), book("B"), book("C"), book("D"), book("E")),
+						282.5),
+				Arguments.of(List.of(book("A"), book("A"), book("B"), book("B"), book("C"), book("C")), 270.0));
 	}
 
 	@Test
@@ -62,47 +55,20 @@ public class PricingServiceTest {
 		List<Book> books = List.of(book("A"), book("A"), book("B"), book("B"), book("C"), book("C"), book("D"),
 				book("D"), book("E"), book("E"));
 		double total = calculator.calculateTotal(books);
-		assertEquals(375.0, total, 0.001); // 2 sets of 5 books with 25% discount each
+		assertEquals(375.0, total, 0.001);
 	}
 
 	@Test
 	void testAllSameBooks_NoDiscount() {
 		List<Book> books = List.of(book("A"), book("A"), book("A"));
 		double total = calculator.calculateTotal(books);
-		assertEquals(150.0, total, 0.001); // No discount on same titles
-	}
-	
-	@Test
-	void testEmptyCart_TotalIsZero() {
-		double total = calculator.calculateTotal(List.of());
-		assertEquals(0.0, total, 0.001);
-	}
-
-	@Test
-	void testTwoIdenticalBooks_NoDiscount() {
-		double total = calculator.calculateTotal(List.of(book("A"), book("A")));
-		assertEquals(100.0, total, 0.001); // 2 × 50 = 100
-	}
-
-	@Test
-	void testThreeBooks_TwoSameOneDifferent() {
-		double total = calculator.calculateTotal(List.of(book("A"), book("A"), book("B")));
-		// One set of 2 (5% discount), one extra
-		// (50 + 50) * 0.95 = 95
-		assertEquals(145.0, total, 0.001);
+		assertEquals(150.0, total, 0.001);
 	}
 
 	@Test
 	void testWorstGroupingShouldNotOccur() {
-		List<Book> books = List.of(
-			book("A"), book("A"), book("B"), book("B"), book("C"),
-			book("D"), book("E")
-		);
+		List<Book> books = List.of(book("A"), book("A"), book("B"), book("B"), book("C"), book("D"), book("E"));
 		double total = calculator.calculateTotal(books);
-		// Expected best grouping:
-		// Set of 5 (A, B, C, D, E) = 187.5
-		// Set of 2 (A, B) = 95.0
-		// Total = 282.5
 		assertEquals(282.5, total, 0.001);
 	}
 
@@ -110,24 +76,10 @@ public class PricingServiceTest {
 	void testSevenBooks_NonOptimalIfGreedy() {
 		List<Book> books = List.of(book("A"), book("A"), book("B"), book("B"), book("C"), book("D"), book("E"));
 		double total = calculator.calculateTotal(books);
-		// Best grouping: (A, B, C, D, E) => 187.5 + (A, B) => 95.0
-		// Total = 282.5
 		assertEquals(282.5, total, 0.001);
 	}
 
-	@Test
-	void testSixBooks_TwoSetsOfThree() {
-		List<Book> books = List.of(book("A"), book("B"), book("C"), book("A"), book("B"), book("C"));
-		double total = calculator.calculateTotal(books);
-		// Two sets of 3 different books = 2 × (3 × 50 × 0.9) = 270.0
-		assertEquals(270.0, total, 0.001);
-	}
-
-	
-
-	private Book book(String title) {
+	private static Book book(String title) {
 		return new Book(title);
 	}
-	
-	
 }
