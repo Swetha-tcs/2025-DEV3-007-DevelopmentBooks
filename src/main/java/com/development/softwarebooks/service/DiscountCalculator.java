@@ -1,63 +1,67 @@
 package com.development.softwarebooks.service;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.development.softwarebooks.domain.Book;
+
+import java.util.*;
+import java.util.stream.*;
 
 public class DiscountCalculator {
 
-	private static final double BASE_PRICE = 50.0;
+    private static final double PRICE = 50.0;
+    private static final Map<Integer, Double> DISCOUNTS = Map.of(1, 0.0, 2, 0.05, 3, 0.10, 4, 0.20, 5, 0.25);
+    private final Map<String, Double> memo = new HashMap<>();
 
-	/**
-	 * Calculates the price for a list of books. Currently, no discounts are
-	 * applied.
-	 */
+    public double calculateTotal(List<Book> books) {
+        if (books == null || books.isEmpty()) return 0.0;
 
-	public double calculateTotal(List<Book> books) {
-		if (books == null || books.isEmpty()) {
-			return 0.0;
-		}
-		// Count how many times each title appears
-		Map<String, Integer> bookCounts = new HashMap<>();
-		for (Book book : books) {
-			bookCounts.put(book.getTitle(), bookCounts.getOrDefault(book.getTitle(), 0) + 1);
-		}
-		double total = 0.0;
-		// While there are still books left to group
-		while (!bookCounts.isEmpty()) {
-			Set<String> group = new HashSet<>();
+        if (books.stream().anyMatch(b -> b == null || b.getTitle() == null || b.getTitle().trim().isEmpty())) {
+            throw new IllegalArgumentException("All books must be non-null and have a valid title.");
+        }
 
-			// Build one group of unique books
-			for (String title : new HashSet<>(bookCounts.keySet())) {
-				group.add(title);
-				int count = bookCounts.get(title);
-				if (count == 1) {
-					bookCounts.remove(title);
-				} else {
-					bookCounts.put(title, count - 1);
-				}
-			}
+        Map<String, Integer> count = books.stream()
+                .collect(Collectors.groupingBy(Book::getTitle, Collectors.summingInt(b -> 1)));
 
-			int groupSize = group.size();
-			double discount = getDiscount(groupSize);
-			total += groupSize * BASE_PRICE * (1 - discount);
-		}
+        return minPrice(count);
+    }
 
-		return total;
-	}
+    private double minPrice(Map<String, Integer> count) {
+        String key = count.keySet().stream().sorted().map(k -> count.get(k).toString()).collect(Collectors.joining(","));
+        if (memo.containsKey(key)) return memo.get(key);
+        if (count.values().stream().allMatch(v -> v == 0)) return 0.0;
 
-	private double getDiscount(int uniqueCount) {
-		return switch (uniqueCount) {
-		case 2 -> 0.05;
-		case 3 -> 0.10;
-		case 4 -> 0.20;
-		case 5 -> 0.25;
-		default -> 0.0;
-		};
-	}
+        double[] min = { Double.MAX_VALUE };
+        List<String> titles = new ArrayList<>(count.keySet());
 
+        for (int size = 1; size <= titles.size(); size++) {
+            final int groupSize = size; // <-- Final copy for use in lambda
+
+            comb(titles, groupSize).stream()
+                .filter(g -> g.stream().allMatch(t -> count.get(t) > 0))
+                .forEach(g -> {
+                    Map<String, Integer> next = new HashMap<>(count);
+                    g.forEach(t -> next.put(t, next.get(t) - 1));
+                    double total = groupSize * PRICE * (1 - DISCOUNTS.get(groupSize)) + minPrice(next);
+                    min[0] = Math.min(min[0], total);
+                });
+        }
+
+
+        memo.put(key, min[0]);
+        return min[0];
+    }
+
+    private List<Set<String>> comb(List<String> titles, int size) {
+        List<Set<String>> res = new ArrayList<>();
+        back(titles, 0, new LinkedHashSet<>(), res, size);
+        return res;
+    }
+
+    private void back(List<String> titles, int start, Set<String> curr, List<Set<String>> res, int size) {
+        if (curr.size() == size) { res.add(new HashSet<>(curr)); return; }
+        for (int i = start; i < titles.size(); i++) {
+            curr.add(titles.get(i));
+            back(titles, i + 1, curr, res, size);
+            curr.remove(titles.get(i));
+        }
+    }
 }
