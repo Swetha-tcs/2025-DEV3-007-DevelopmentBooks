@@ -1,67 +1,91 @@
 package com.development.softwarebooks.service;
 
-import com.development.softwarebooks.domain.Book;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import java.util.*;
-import java.util.stream.*;
+import com.development.softwarebooks.domain.Book;
 
 public class DiscountCalculator {
 
     private static final double PRICE = 50.0;
-    private static final Map<Integer, Double> DISCOUNTS = Map.of(1, 0.0, 2, 0.05, 3, 0.10, 4, 0.20, 5, 0.25);
+    private static final Map<Integer, Double> DISCOUNTS = new HashMap<>();
+
+    static {
+        DISCOUNTS.put(1, 0.0);
+        DISCOUNTS.put(2, 0.05);
+        DISCOUNTS.put(3, 0.10);
+        DISCOUNTS.put(4, 0.20);
+        DISCOUNTS.put(5, 0.25);
+    }
+
     private final Map<String, Double> memo = new HashMap<>();
 
     public double calculateTotal(List<Book> books) {
         if (books == null || books.isEmpty()) return 0.0;
 
-        if (books.stream().anyMatch(b -> b == null || b.getTitle() == null || b.getTitle().trim().isEmpty())) {
+        boolean hasInvalid = books.stream()
+                .anyMatch(b -> b == null || b.getTitle() == null || b.getTitle().trim().isEmpty());
+
+        if (hasInvalid) {
             throw new IllegalArgumentException("All books must be non-null and have a valid title.");
         }
 
         Map<String, Integer> count = books.stream()
-                .collect(Collectors.groupingBy(Book::getTitle, Collectors.summingInt(b -> 1)));
+                .collect(Collectors.toMap(Book::getTitle, b -> 1, Integer::sum));
 
         return minPrice(count);
     }
 
     private double minPrice(Map<String, Integer> count) {
-        String key = count.keySet().stream().sorted().map(k -> count.get(k).toString()).collect(Collectors.joining(","));
-        if (memo.containsKey(key)) return memo.get(key);
         if (count.values().stream().allMatch(v -> v == 0)) return 0.0;
 
-        double[] min = { Double.MAX_VALUE };
+        String key = count.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(e -> e.getValue().toString())
+                .collect(Collectors.joining(","));
+
+        if (memo.containsKey(key)) return memo.get(key);
+
+        double min = Double.MAX_VALUE;
         List<String> titles = new ArrayList<>(count.keySet());
 
         for (int size = 1; size <= titles.size(); size++) {
-            final int groupSize = size; // <-- Final copy for use in lambda
-
-            comb(titles, groupSize).stream()
-                .filter(g -> g.stream().allMatch(t -> count.get(t) > 0))
-                .forEach(g -> {
+            for (Set<String> group : combinations(titles, size)) {
+                if (group.stream().allMatch(t -> count.get(t) > 0)) {
                     Map<String, Integer> next = new HashMap<>(count);
-                    g.forEach(t -> next.put(t, next.get(t) - 1));
-                    double total = groupSize * PRICE * (1 - DISCOUNTS.get(groupSize)) + minPrice(next);
-                    min[0] = Math.min(min[0], total);
-                });
+                    group.forEach(t -> next.put(t, next.get(t) - 1));
+                    double groupTotal = size * PRICE * (1 - DISCOUNTS.get(size));
+                    double total = groupTotal + minPrice(next);
+                    min = Math.min(min, total);
+                }
+            }
         }
 
-
-        memo.put(key, min[0]);
-        return min[0];
+        memo.put(key, min);
+        return min;
     }
 
-    private List<Set<String>> comb(List<String> titles, int size) {
-        List<Set<String>> res = new ArrayList<>();
-        back(titles, 0, new LinkedHashSet<>(), res, size);
-        return res;
+    private List<Set<String>> combinations(List<String> titles, int size) {
+        List<Set<String>> result = new ArrayList<>();
+        backtrack(titles, 0, new LinkedHashSet<>(), result, size);
+        return result;
     }
 
-    private void back(List<String> titles, int start, Set<String> curr, List<Set<String>> res, int size) {
-        if (curr.size() == size) { res.add(new HashSet<>(curr)); return; }
+    private void backtrack(List<String> titles, int start, Set<String> current, List<Set<String>> result, int size) {
+        if (current.size() == size) {
+            result.add(new HashSet<>(current));
+            return;
+        }
         for (int i = start; i < titles.size(); i++) {
-            curr.add(titles.get(i));
-            back(titles, i + 1, curr, res, size);
-            curr.remove(titles.get(i));
+            current.add(titles.get(i));
+            backtrack(titles, i + 1, current, result, size);
+            current.remove(titles.get(i));
         }
     }
 }
