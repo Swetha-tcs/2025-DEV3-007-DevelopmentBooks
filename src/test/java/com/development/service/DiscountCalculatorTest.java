@@ -42,4 +42,23 @@ public class DiscountCalculatorTest {
 		    double total = calculator.calculatePrice(books);
 		    assertEquals(135.0, total);
 		}
+		
+		@Test
+		void testFourDifferentBooks_20PercentDiscount() {
+		    DiscountCalculator calculator = new DiscountCalculator();
+		    List<Book> books = List.of(new Book(CLEAN_CODE), new Book(THE_CLEAN_CODER), new Book(CODE_ARCHITECTURE),new Book(TEST_DRIVEN_DEVELOPMENT));
+
+		    double total = calculator.calculatePrice(books);
+		   assertEquals(160.0, total, 0.001);
+		}
+		
+		@Test
+		void testFiveDifferentBooks_25PercentDiscount() {
+		    DiscountCalculator calculator = new DiscountCalculator();
+		    List<Book> books = List.of(new Book(CLEAN_CODE), new Book(THE_CLEAN_CODER), new Book(CODE_ARCHITECTURE),new Book(TEST_DRIVEN_DEVELOPMENT),new Book(LEGACY_CODE));
+
+
+		    double total = calculator.calculatePrice(books);
+		   assertEquals(187.50, total);
+		}
 	}
