@@ -6,44 +6,97 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
+import java.util.stream.Stream;
 
 import com.development.softwarebooks.SoftwareBooksApplication;
-import com.development.softwarebooks.controller.PricingController;
+import com.development.softwarebooks.config.DiscountProperties;
+import com.development.softwarebooks.config.DiscountProperties.Titles;
 import com.development.softwarebooks.service.PricingService;
 
-@WebMvcTest(controllers = PricingController.class)
-@ContextConfiguration(classes = SoftwareBooksApplication.class)
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.Arguments;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+@SpringBootTest(classes = SoftwareBooksApplication.class)
+@AutoConfigureMockMvc
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class PricingControllerTest {
 
-	@Autowired
-	private MockMvc mockMvc;
+	private final MockMvc mockMvc;
+	private final ObjectMapper objectMapper;
 
 	@MockBean
 	private PricingService pricingService;
 
-	@Test
-	void calculatePrice_ReturnsExpectedPrice() throws Exception {
-		// Given
-		List<String> bookTitles = List.of("Clean Code", "The Clean Coder", "Clean Architecture");
-		double expectedPrice = 23.5;
+	@Autowired
+	private DiscountProperties discountProperties;
 
-		// Mock the service method to return expectedPrice regardless of input
-		when(pricingService.calculatePrice(org.mockito.ArgumentMatchers.any())).thenReturn(expectedPrice);
+	private Titles titles;
 
-		// Convert the bookTitles list to JSON array string
-		String jsonRequest = "[\"Clean Code\",\"The Clean Coder\",\"Clean Architecture\"]";
+	private static final String PRICE_API_ENDPOINT = "/api/price";
 
-		// When & Then
-		mockMvc.perform(post("/api/price").contentType(MediaType.APPLICATION_JSON).content(jsonRequest))
-				.andExpect(status().isOk()).andExpect(content().string(String.valueOf(expectedPrice)));
+	// Named constants
+	private static final double PRICE_ONE_BOOK = 50.0;
+	private static final double PRICE_TWO_BOOKS_DISCOUNTED = 95.0;
+	private static final double PRICE_THREE_BOOKS_DISCOUNTED = 135.0;
+	private static final double PRICE_FIVE_BOOKS_DISCOUNTED = 320.0;
+
+	@Autowired
+	public PricingControllerTest(MockMvc mockMvc, ObjectMapper objectMapper) {
+		this.mockMvc = mockMvc;
+		this.objectMapper = objectMapper;
+	}
+
+	@BeforeAll
+	void setUp() {
+		this.titles = discountProperties.getTitles();
+	}
+
+	static Stream<Arguments> provideBookTitlesAndExpectedPrices() {
+		PricingControllerTest testInstance = new PricingControllerTest(null, null);
+		testInstance.titles = new DiscountProperties.Titles();
+		testInstance.titles.setCleanCode("Clean Code");
+		testInstance.titles.setCleanCoder("The Clean Coder");
+		testInstance.titles.setCleanArchitecture("Clean Architecture");
+		testInstance.titles.setTdd("Test Driven Development by Example");
+		testInstance.titles.setLegacyCode("Working Effectively with Legacy Code");
+
+		return Stream.of(
+			Arguments.of(List.of(testInstance.titles.getCleanCode()), PRICE_ONE_BOOK),
+			Arguments.of(List.of(testInstance.titles.getCleanCode(), testInstance.titles.getCleanCoder()), PRICE_TWO_BOOKS_DISCOUNTED),
+			Arguments.of(List.of(testInstance.titles.getCleanCode(), testInstance.titles.getCleanCoder(), testInstance.titles.getCleanArchitecture()), PRICE_THREE_BOOKS_DISCOUNTED),
+			Arguments.of(List.of(
+				testInstance.titles.getCleanCoder(),
+				testInstance.titles.getCleanCode(),
+				testInstance.titles.getCleanArchitecture(),
+				testInstance.titles.getTdd(),
+				testInstance.titles.getLegacyCode()
+			), PRICE_FIVE_BOOKS_DISCOUNTED)
+		);
+	}
+
+	@ParameterizedTest
+	@MethodSource("provideBookTitlesAndExpectedPrices")
+	@DisplayName("Should return correct total price for given list of book titles")
+	void calculatePrice_ReturnsCorrectPrice(List<String> selectedBookTitles, double expectedTotalPrice) throws Exception {
+		when(pricingService.calculatePrice(org.mockito.ArgumentMatchers.any())).thenReturn(expectedTotalPrice);
+
+		mockMvc.perform(post(PRICE_API_ENDPOINT)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(selectedBookTitles)))
+				.andExpect(status().isOk())
+				.andExpect(content().string(String.valueOf(expectedTotalPrice)));
 	}
 }
