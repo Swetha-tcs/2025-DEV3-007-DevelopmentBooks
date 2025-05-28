@@ -1,11 +1,7 @@
 package com.development.softwarebooks.service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -14,71 +10,101 @@ import com.development.softwarebooks.domain.Book;
 
 @Service
 public class DiscountCalculator {
-	private static final double ZERO_TOTAL = 0.0;
-	private final double baseBookPrice;
-	public DiscountCalculator(DiscountProperties properties) {
+
+    private final double baseBookPrice;
+    private final Map<Integer, Double> discountRates;
+    private final Map<String, Double> memoizationCache = new HashMap<>();
+
+    private static final double ZERO_TOTAL = 0.0;
+    private static final double INITIAL_MIN_TOTAL = Double.MAX_VALUE;
+
+    public DiscountCalculator(DiscountProperties properties) {
         this.baseBookPrice = properties.getPrice();
-        properties.getDiscounts();
+        this.discountRates = properties.getDiscounts();
     }
 
-	public double calculatePrice(List<Book> books) {
-		if (books == null || books.isEmpty()) {
-			return ZERO_TOTAL;
-		}
+    public double calculateTotal(List<Book> books) {
+        if (books == null || books.isEmpty()) {
+            return ZERO_TOTAL;
+        }
 
-		boolean containsInvalidBook = books.stream()
-				.anyMatch(book -> book == null || book.getTitle() == null || book.getTitle().trim().isEmpty());
-		if (containsInvalidBook) {
-			throw new IllegalArgumentException("All books must be non-null and have a valid title.");
-		}
+        boolean containsInvalidBook = books.stream()
+            .anyMatch(book -> book == null || book.getTitle() == null || book.getTitle().trim().isEmpty());
 
-		// Count each book title
-		Map<String, Integer> bookCounts = new HashMap<>();
-		for (Book book : books) {
-			bookCounts.merge(book.getTitle(), 1, Integer::sum);
-		}
+        if (containsInvalidBook) {
+            throw new IllegalArgumentException("All books must be non-null and have a valid title.");
+        }
 
-		List<Integer> groupSizes = new ArrayList<>();
+        Map<String, Integer> bookCountByTitle = new HashMap<>();
+        for (Book book : books) {
+            bookCountByTitle.merge(book.getTitle(), 1, Integer::sum);
+        }
 
-		// Create greedy groupings
-		while (!bookCounts.isEmpty()) {
-			Set<String> group = new HashSet<>();
-			for (String title : new HashSet<>(bookCounts.keySet())) {
-				group.add(title);
-				bookCounts.put(title, bookCounts.get(title) - 1);
-				if (bookCounts.get(title) == 0) {
-					bookCounts.remove(title);
-				}
-			}
-			groupSizes.add(group.size());
-		}
+        return computeMinimumTotalPrice(bookCountByTitle);
+    }
 
-		// Apply 4+4 optimization: Replace one (5, 3) with two 4s
-		while (groupSizes.contains(5) && groupSizes.contains(3)) {
-			groupSizes.remove(Integer.valueOf(5));
-			groupSizes.remove(Integer.valueOf(3));
-			groupSizes.add(4);
-			groupSizes.add(4);
-		}
+    private double computeMinimumTotalPrice(Map<String, Integer> bookCountByTitle) {
+        boolean areAllCountsZero = bookCountByTitle.values().stream().allMatch(count -> count == 0);
+        if (areAllCountsZero) {
+            return ZERO_TOTAL;
+        }
 
-		// Calculate total price with discounts
-		double total = 0.0;
-		for (int size : groupSizes) {
-			double discount = getDiscount(size);
-			total += size * baseBookPrice * (1 - discount);
-		}
+        String memoKey = bookCountByTitle.entrySet().stream()
+            .sorted(Map.Entry.comparingByKey())
+            .map(entry -> entry.getValue().toString())
+            .collect(Collectors.joining(","));
 
-		return total;
-	}
+        if (memoizationCache.containsKey(memoKey)) {
+            return memoizationCache.get(memoKey);
+        }
 
-	private double getDiscount(int uniqueCount) {
-		return switch (uniqueCount) {
-		case 2 -> 0.05; // 5% discount for 2 different books
-		case 3 -> 0.10; // 10% discount for 3 different books
-		case 4 -> 0.20; // 20% discount for 4 different books
-		case 5 -> 0.25; // 25% discount for 5 different books
-		default -> 0.0; // No discount for single books or 0 books
-		};
-	}
+        double minimumTotal = INITIAL_MIN_TOTAL;
+        List<String> bookTitles = new ArrayList<>(bookCountByTitle.keySet());
 
+        for (int currentGroupSize = 1; currentGroupSize <= bookTitles.size(); currentGroupSize++) {
+            for (Set<String> bookGroup : generateTitleCombinations(bookTitles, currentGroupSize)) {
+                boolean allBooksAvailable = bookGroup.stream().allMatch(title -> bookCountByTitle.get(title) > 0);
+
+                if (allBooksAvailable) {
+                    Map<String, Integer> updatedBookCounts = new HashMap<>(bookCountByTitle);
+                    bookGroup.forEach(title -> updatedBookCounts.put(title, updatedBookCounts.get(title) - 1));
+
+                    double groupDiscountRate = discountRates.getOrDefault(currentGroupSize, 0.0);
+                    double discountedGroupPrice = currentGroupSize * baseBookPrice * (1 - groupDiscountRate);
+                    double totalPrice = discountedGroupPrice + computeMinimumTotalPrice(updatedBookCounts);
+
+                    minimumTotal = Math.min(minimumTotal, totalPrice);
+                }
+            }
+        }
+
+        memoizationCache.put(memoKey, minimumTotal);
+        return minimumTotal;
+    }
+
+    private List<Set<String>> generateTitleCombinations(List<String> titles, int combinationSize) {
+        List<Set<String>> allCombinations = new ArrayList<>();
+        backtrackCombinations(titles, 0, new LinkedHashSet<>(), allCombinations, combinationSize);
+        return allCombinations;
+    }
+
+    private void backtrackCombinations(
+        List<String> titles,
+        int currentIndex,
+        Set<String> currentCombination,
+        List<Set<String>> allCombinations,
+        int targetSize
+    ) {
+        if (currentCombination.size() == targetSize) {
+            allCombinations.add(new HashSet<>(currentCombination));
+            return;
+        }
+
+        for (int titleIndex = currentIndex; titleIndex < titles.size(); titleIndex++) {
+            String title = titles.get(titleIndex);
+            currentCombination.add(title);
+            backtrackCombinations(titles, titleIndex + 1, currentCombination, allCombinations, targetSize);
+            currentCombination.remove(title);
+        }
+    }
 }
