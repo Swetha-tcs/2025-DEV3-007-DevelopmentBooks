@@ -2,6 +2,9 @@ package com.development.softwarebooks;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+
+import com.development.softwarebooks.config.DiscountProperties;
 
 /**
  * The main class for starting the SoftwareBooks Spring Boot application.
@@ -12,6 +15,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 
 @SpringBootApplication
+@EnableConfigurationProperties(DiscountProperties.class)
 public class SoftwareBooksApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(SoftwareBooksApplication.class, args);

@@ -1,0 +1,14 @@
+softwarebooks:
+  price: 50.0
+  discounts:
+    1: 0.0
+    2: 0.05
+    3: 0.10
+    4: 0.20
+    5: 0.25
+  titles:
+    cleanCode: Clean Code
+    cleanCoder: The Clean Coder
+    cleanArchitecture: Clean Architecture
+    tdd: Test Driven Development
+    legacyCode: Working Effectively with Legacy Code
