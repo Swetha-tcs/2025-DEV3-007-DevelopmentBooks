@@ -35,4 +35,11 @@ public class DiscountCalculatorTest {
 		    double total = calculator.calculatePrice(books);
 		    assertEquals(95.0, total);
 		}
+		@Test
+		void testThreeDifferentBooks_10PercentDiscount() {
+		    DiscountCalculator calculator = new DiscountCalculator();
+		    List<Book> books = List.of(new Book(CLEAN_CODE), new Book(THE_CLEAN_CODER), new Book(CODE_ARCHITECTURE));
+		    double total = calculator.calculatePrice(books);
+		    assertEquals(135.0, total);
+		}
 	}
