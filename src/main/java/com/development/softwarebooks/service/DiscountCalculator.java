@@ -9,12 +9,17 @@ import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
+import com.development.softwarebooks.config.DiscountProperties;
 import com.development.softwarebooks.domain.Book;
 
 @Service
 public class DiscountCalculator {
 	private static final double ZERO_TOTAL = 0.0;
-	private static final double BOOK_PRICE = 50.0;
+	private final double baseBookPrice;
+	public DiscountCalculator(DiscountProperties properties) {
+        this.baseBookPrice = properties.getPrice();
+        properties.getDiscounts();
+    }
 
 	public double calculatePrice(List<Book> books) {
 		if (books == null || books.isEmpty()) {
@@ -60,7 +65,7 @@ public class DiscountCalculator {
 		double total = 0.0;
 		for (int size : groupSizes) {
 			double discount = getDiscount(size);
-			total += size * BOOK_PRICE * (1 - discount);
+			total += size * baseBookPrice * (1 - discount);
 		}
 
 		return total;
