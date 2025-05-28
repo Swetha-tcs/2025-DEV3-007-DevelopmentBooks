@@ -1,50 +1,58 @@
 package com.development.softwarebooks.service;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import com.development.softwarebooks.domain.Book;
 
 public class DiscountCalculator {
-
-	private static final double BASE_PRICE = 50.0;
-
-	/**
-	 * Calculates the price for a list of books. Currently, no discounts are
-	 * applied.
-	 */
+	private static final double ZERO_TOTAL = 0.0;
+	private static final double BOOK_PRICE = 50.0;
 
 	public double calculatePrice(List<Book> books) {
 		if (books == null || books.isEmpty()) {
-			return 0.0;
+			return ZERO_TOTAL;
 		}
-		// Count how many times each title appears
+
+		boolean containsInvalidBook = books.stream()
+				.anyMatch(book -> book == null || book.getTitle() == null || book.getTitle().trim().isEmpty());
+		if (containsInvalidBook) {
+			throw new IllegalArgumentException("All books must be non-null and have a valid title.");
+		}
+
+		// Count each book title
 		Map<String, Integer> bookCounts = new HashMap<>();
 		for (Book book : books) {
-			bookCounts.put(book.getTitle(), bookCounts.getOrDefault(book.getTitle(), 0) + 1);
+			bookCounts.merge(book.getTitle(), 1, Integer::sum);
 		}
-		double total = 0.0;
-		// While there are still books left to group
+
+		List<Integer> groupSizes = new ArrayList<>();
+
+		// Create greedy groupings
 		while (!bookCounts.isEmpty()) {
 			Set<String> group = new HashSet<>();
-
-			// Build one group of unique books
 			for (String title : new HashSet<>(bookCounts.keySet())) {
 				group.add(title);
-				int count = bookCounts.get(title);
-				if (count == 1) {
+				bookCounts.put(title, bookCounts.get(title) - 1);
+				if (bookCounts.get(title) == 0) {
 					bookCounts.remove(title);
-				} else {
-					bookCounts.put(title, count - 1);
 				}
 			}
+			groupSizes.add(group.size());
+		}
 
-			int groupSize = group.size();
-			double discount = getDiscount(groupSize);
-			total += groupSize * BASE_PRICE * (1 - discount);
+		// Apply 4+4 optimization: Replace one (5, 3) with two 4s
+		while (groupSizes.contains(5) && groupSizes.contains(3)) {
+			groupSizes.remove(Integer.valueOf(5));
+			groupSizes.remove(Integer.valueOf(3));
+			groupSizes.add(4);
+			groupSizes.add(4);
+		}
+
+		// Calculate total price with discounts
+		double total = 0.0;
+		for (int size : groupSizes) {
+			double discount = getDiscount(size);
+			total += size * BOOK_PRICE * (1 - discount);
 		}
 
 		return total;
@@ -52,11 +60,11 @@ public class DiscountCalculator {
 
 	private double getDiscount(int uniqueCount) {
 		return switch (uniqueCount) {
-		case 2 -> 0.05;
-		case 3 -> 0.10;
-		case 4 -> 0.20;
-		case 5 -> 0.25;
-		default -> 0.0;
+		case 2 -> 0.05; // 5% discount for 2 different books
+		case 3 -> 0.10; // 10% discount for 3 different books
+		case 4 -> 0.20; // 20% discount for 4 different books
+		case 5 -> 0.25; // 25% discount for 5 different books
+		default -> 0.0; // No discount for single books or 0 books
 		};
 	}
 
