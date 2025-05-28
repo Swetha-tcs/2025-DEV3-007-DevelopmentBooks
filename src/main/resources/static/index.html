@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Software Development Books</title>
+    <link rel="stylesheet" href="/style.css">
+    
+</head>
+<body>
+<div class="card">
+    <h2>Software Development Books</h2>
+    <form onsubmit="calculatePrice(event)">
+        <div class="book-row">
+            <img src="https://img.icons8.com/color/48/000000/source-code.png"/>
+            <label>Clean Code</label>
+            <input type="number" name="book1" value="0" min="0"/>
+        </div>
+        <div class="book-row">
+            <img src="https://img.icons8.com/color/48/000000/user-group-man-man.png"/>
+            <label>The Clean Coder</label>
+            <input type="number" name="book2" value="0" min="0"/>
+        </div>
+        <div class="book-row">
+            <img src="https://img.icons8.com/color/48/000000/blueprint.png"/>
+            <label>Clean Architecture</label>
+            <input type="number" name="book3" value="0" min="0"/>
+        </div>
+        <div class="book-row">
+            <img src="https://img.icons8.com/color/48/000000/task.png"/>
+            <label>Test Driven Development</label>
+            <input type="number" name="book4" value="0" min="0"/>
+        </div>
+        <div class="book-row">
+            <img src="https://img.icons8.com/color/48/000000/maintenance.png"/>
+            <label>Legacy Code</label>
+            <input type="number" name="book5" value="0" min="0"/>
+        </div>
+        <button type="submit">Calculate Price</button>
+    </form>
+    <div class="total">Total Price: 0 EUR</div>
+</div>
+</body>
+</html>
