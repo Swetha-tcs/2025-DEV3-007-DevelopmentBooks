@@ -61,4 +61,13 @@ public class DiscountCalculatorTest {
 		    double total = calculator.calculatePrice(books);
 		   assertEquals(187.50, total);
 		}
+		@Test
+		void testDuplicateBooks_AreGroupedForMaxDiscount() {
+			DiscountCalculator calculator = new DiscountCalculator();
+			List<Book> books = List.of(new Book(CLEAN_CODE), new Book(CLEAN_CODE), new Book(THE_CLEAN_CODER), new Book(THE_CLEAN_CODER), new Book(CODE_ARCHITECTURE),
+					new Book(CODE_ARCHITECTURE), new Book(TEST_DRIVEN_DEVELOPMENT), new Book(LEGACY_CODE));
+
+			double total = calculator.calculatePrice(books);
+			assertEquals(322.5, total);
+		}
 	}
