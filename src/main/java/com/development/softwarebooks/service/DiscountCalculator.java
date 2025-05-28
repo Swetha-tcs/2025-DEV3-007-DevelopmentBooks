@@ -29,6 +29,9 @@ public class DiscountCalculator {
 	        // 2 different books → 5% discount
 	        return 2 * 50.0 * 0.95;
 	    }
+	    if (uniqueTitles.size() == 3 && books.size() == 3) {
+	        return 3 * 50.0 * 0.90; // 10% discount
+	    }
         return books.size() * BASE_PRICE;
     }
 	
