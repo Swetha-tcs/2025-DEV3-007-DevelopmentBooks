@@ -127,6 +127,17 @@ software-books/
 
 `index.html` is a plain HTML page with embedded JavaScript that collects user input and sends it to the backend.
 
+---
+## 📥 Clone and Import Project
+
+1. **Clone the Repository**
+   
+👉 [https://github.com/Swetha-tcs/2025-DEV3-007-DevelopmentBooks](https://github.com/Swetha-tcs/2025-DEV3-007-DevelopmentBooks) ->  Branch : Main
+
+   
+2. **Import into IDE (IntelliJ / Eclipse / VS Code)**
+
+          Open your IDE --> Select “Import Project” --> Choose the pom.xml file to import it as a Maven project.
 
 ---
 
