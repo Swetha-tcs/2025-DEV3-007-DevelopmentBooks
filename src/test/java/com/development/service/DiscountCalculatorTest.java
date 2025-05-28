@@ -1,5 +1,14 @@
 package com.development.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+
+import com.development.softwarebooks.domain.Book;
+import com.development.softwarebooks.service.DiscountCalculator;
+
 public class DiscountCalculatorTest {
 
 	private static final double DELTA = 0.01;
@@ -10,4 +19,13 @@ public class DiscountCalculatorTest {
 	private static final String LEGACY_CODE = "Working Effectively with Legacy Code";
 
 	
-}
+
+		@Test
+		void testSingleBook_NoDiscount() {
+			DiscountCalculator calculator = new DiscountCalculator();
+			List<Book> books = List.of(new Book(CLEAN_CODE));
+			double total = calculator.calculatePrice(books);
+			assertEquals(8.0, total, DELTA);
+		}
+
+	}
