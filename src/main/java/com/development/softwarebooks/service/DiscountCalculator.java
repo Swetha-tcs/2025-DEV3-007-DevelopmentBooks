@@ -6,7 +6,7 @@ import com.development.softwarebooks.domain.Book;
 
 public class DiscountCalculator {
 
-	private static final double BASE_PRICE = 8.0;
+	private static final double BASE_PRICE = 50.0;
 
 	public double calculatePrice(List<Book> books) {
 

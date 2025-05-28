@@ -25,7 +25,7 @@ public class DiscountCalculatorTest {
 			DiscountCalculator calculator = new DiscountCalculator();
 			List<Book> books = List.of(new Book(CLEAN_CODE));
 			double total = calculator.calculatePrice(books);
-			assertEquals(8.0, total, DELTA);
+			assertEquals(50.0, total, DELTA);
 		}
 
 	}
