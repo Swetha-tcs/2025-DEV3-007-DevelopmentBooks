@@ -23,7 +23,7 @@ public class DiscountCalculator {
         this.discountRates = properties.getDiscounts();
     }
 
-    public double calculateTotal(List<Book> books) {
+    public double calculatePrice(List<Book> books) {
         if (books == null || books.isEmpty()) {
             return ZERO_TOTAL;
         }
